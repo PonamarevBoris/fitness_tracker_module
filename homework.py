@@ -1,23 +1,24 @@
+from dataclasses import dataclass, asdict
+
+
+@dataclass(repr=False, eq=False)
 class InfoMessage:
     """Информационное сообщение о тренировке."""
-    def __init__(self,
-                 training_type: str,
-                 duration: float,
-                 distance: float,
-                 speed: float,
-                 calories: float,) -> None:
-        self.training_type = training_type
-        self.duration = duration
-        self.distance = distance
-        self.speed = speed
-        self.calories = calories
+    training_type: str
+    duration: float
+    distance: float
+    speed: float
+    calories: float
+
+    MESSAGE: str = ('Тип тренировки: {training_type}; '
+                    'Длительность: {duration:.3f} ч.; '
+                    'Дистанция: {distance:.3f} км; '
+                    'Ср. скорость: {speed:.3f} км/ч; '
+                    'Потрачено ккал: {calories:.3f}.')
 
     def get_message(self) -> str:
-        return (f'Тип тренировки: {self.training_type}; '
-                f'Длительность: {self.duration:.3f} ч.; '
-                f'Дистанция: {self.distance:.3f} км; '
-                f'Ср. скорость: {self.speed:.3f} км/ч; '
-                f'Потрачено ккал: {self.calories:.3f}.')
+        """Вернуть строку сообщения."""
+        return self.MESSAGE.format(**asdict(self))
 
 
 class Training:
@@ -103,7 +104,7 @@ class SportsWalking(Training):
 
 class Swimming(Training):
     """Тренировка: плавание."""
-    LEN_STEP: float = 1.38
+    LEN_STEP: float = 1.38  # метра
     AVERAGE_SPEED_OFFSET: float = 1.1
     MULTIPLIER: int = 2
 
@@ -135,8 +136,12 @@ def read_package(workout_type: str, data: list) -> Training:
     activities: dict[str, Training] = {'SWM': Swimming,
                                        'RUN': Running,
                                        'WLK': SportsWalking}
-    training: Training = activities[workout_type](*data)
-    return training
+    if workout_type not in activities:
+        raise ValueError('Мы так не тренируемся! Можно только так:',
+                         *activities.keys())
+    if workout_type in activities:
+        training: Training = activities[workout_type](*data)
+        return training
 
 
 def main(training: Training) -> None:
